@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PashuRakshak AI - Livestock Health & Disease Screening</title>
+  <link rel="stylesheet" href="css/app.css">
+  <style>
+    :root {
+      --g: #155f46;
+      --g2: #2b9481;
+      --bg: #f3f8f5;
+      --text: #101917;
+      --muted: #687570;
+      --line: #d8e3de;
+      --white: #fff;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow-x: hidden;
+    }
+    button, select, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    .app { min-height: 100vh; display: flex; }
+    
+    /* Sidebar */
+    .side {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 280px;
+      background: #fff;
+      border-right: 1px solid var(--line);
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      z-index: 50;
+    }
+    .brand {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 0 6px 24px;
+      cursor: pointer;
+    }
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: #e1f0ea;
+      display: grid;
+      place-items: center;
+      color: var(--g);
+      flex: none;
+    }
+    .logo svg { width: 28px; }
+    .brand b { font-size: 18px; color: #102c23; }
+    .brand small { display: block; color: var(--muted); margin-top: 2px; font-size: 12px; }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .nav button, .sidebottom button {
+      border: 0;
+      background: transparent;
+      border-radius: 10px;
+      padding: 11px 13px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+      font-size: 15px;
+      font-weight: 550;
+      color: #3b4d46;
+      transition: 0.18s;
+      width: 100%;
+    }
+    .nav button:hover, .sidebottom button:hover {
+      background: #eef7f3;
+      transform: translateX(4px);
+      color: var(--g);
+    }
+    .nav button.active, .sidebottom button.active {
+      background: #e2f0eb;
+      color: var(--g);
+      font-weight: 750;
+    }
+    .nav svg, .sidebottom svg {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      flex: none;
+    }
+
+    .sidebottom {
+      margin-top: auto;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 6px 0;
+    }
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #8ca99d, #d8e5df);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      color: #194b3a;
+      font-size: 14px;
+      flex: none;
+    }
+
+    /* Main Area */
+    .main {
+      margin-left: 280px;
+      width: calc(100% - 280px);
+      padding: 28px 40px 48px;
+      min-height: 100vh;
+    }
+
+    /* Top Bar */
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .top h1 {
+      font-size: 26px;
+      margin: 0 0 4px;
+      letter-spacing: -0.8px;
+      color: var(--text);
+    }
+    .top p { margin: 0; color: var(--muted); font-size: 14px; }
+    .actions { display: flex; align-items: center; gap: 10px; }
+    .actions select, .icon {
+      background: #fff;
+      border: 1px solid #cad8d2;
+      border-radius: 10px;
+      height: 42px;
+    }
+    .actions select { padding: 0 12px; font-size: 13px; outline: none; }
+    .icon {
+      width: 42px;
+      display: grid;
+      place-items: center;
+      transition: 0.2s;
+    }
+    .icon:hover { transform: scale(1.05); box-shadow: 0 6px 16px rgba(23,63,50,0.12); }
+    .icon svg { width: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+
+    /* Dashboard Hero */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      min-height: 230px;
+      border-radius: 22px;
+      padding: 32px 36px;
+      background: #f0f7f3 url('assets/img/farm_hero_bg.jpg') right center / cover no-repeat;
+      border: 1px solid #d4e7de;
+      box-shadow: 0 8px 26px rgba(21,95,70,0.07);
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(246, 252, 249, 0.97) 0%, rgba(246, 252, 249, 0.92) 38%, rgba(246, 252, 249, 0.60) 56%, rgba(246, 252, 249, 0.12) 78%, rgba(246, 252, 249, 0) 100%);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 520px;
+    }
+    .hero-badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 20px;
+      background: #fff8eb;
+      border: 1px solid #fae6be;
+      color: #b37318;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .hero h2 {
+      font-size: 27px;
+      max-width: 500px;
+      line-height: 1.22;
+      margin: 4px 0 8px;
+      letter-spacing: -0.6px;
+      color: #102d24;
+      font-weight: 850;
+    }
+    .hero h2 .accent-green {
+      color: #1a7857;
+    }
+    .hero p {
+      max-width: 450px;
+      line-height: 1.5;
+      margin: 0 0 16px;
+      color: #3f554d;
+      font-size: 13.5px;
+    }
+    .hero-btn {
+      border: 0;
+      background: linear-gradient(135deg, #155f46 0%, #1f7d5e 100%);
+      color: #fff;
+      border-radius: 25px;
+      padding: 11px 24px;
+      font-weight: 750;
+      font-size: 14px;
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 6px 18px rgba(21,95,70,0.25);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .hero-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(21,95,70,0.35);
+      background: linear-gradient(135deg, #104835 0%, #17654b 100%);
+    }
+
+
+    /* Quick Action Cards */
+    .quick {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin: 20px 0;
+    }
+    .card {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 4px 14px rgba(31,58,50,0.05);
+      transition: 0.2s;
+      cursor: pointer;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(31,58,50,0.1);
+      border-color: #b9d7ca;
+    }
+    .quick .card { display: flex; gap: 12px; align-items: flex-start; text-align: left; }
+    .qicon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: #e5f3ed;
+      color: #126449;
+      display: grid;
+      place-items: center;
+      flex: none;
+    }
+    .qicon svg { width: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+    .card h3 { margin: 0 0 4px; font-size: 15px; color: #102c23; }
+    .card p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.35; }
+
+    /* Stats Grid */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .stat { display: flex; align-items: center; gap: 12px; }
+    .statnum { font-size: 26px; font-weight: 800; color: #102c23; }
+    .statlabel { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .trend {
+      margin-left: auto;
+      padding: 4px 8px;
+      border-radius: 8px;
+      background: #d9eee5;
+      color: #187052;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .trend.red { background: #f7e4e2; color: #a03b35; }
+
+    /* Bottom Grid */
+    .bottom {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 290px;
+      gap: 16px;
+    }
+    .table { padding: 0; overflow: hidden; }
+    .table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .table th, .table td { padding: 13px 16px; text-align: left; border-bottom: 1px solid #e5ece8; }
+    .table th { background: #fafcfb; font-weight: 650; color: #3a4541; font-size: 12px; text-transform: uppercase; }
+    .table tr:last-child td { border: 0; }
+    .status {
+      padding: 4px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      display: inline-block;
+    }
+    .status.ok { background: #d7eee4; color: #175e47; }
+    .status.warn { background: #fae9c1; color: #78540e; }
+
+    .help-card-dash {
+      background: #f4faf7;
+      border: 1px solid #d6ece2;
+      border-radius: 16px;
+      padding: 22px 20px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 4px 16px rgba(21,95,70,0.04);
+    }
+    .help-card-dash::after {
+      content: "";
+      position: absolute;
+      right: -6px;
+      bottom: 0;
+      width: 130px;
+      height: 180px;
+      background: url('assets/img/vet_doctor.png') no-repeat bottom right / contain;
+      pointer-events: none;
+      opacity: 0.95;
+    }
+    .help-card-dash h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      color: #123328;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      z-index: 2;
+    }
+    .help-card-dash p {
+      font-size: 13px;
+      line-height: 1.45;
+      margin: 0 0 16px;
+      color: #3f544c;
+      position: relative;
+      z-index: 2;
+      max-width: 160px;
+    }
+    .help-btn {
+      border: 0;
+      background: linear-gradient(135deg, #155f46 0%, #1f7d5e 100%);
+      color: #fff;
+      border-radius: 20px;
+      padding: 9px 18px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      align-self: flex-start;
+      position: relative;
+      z-index: 2;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(21, 95, 70, 0.2);
+    }
+    .help-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(21, 95, 70, 0.32);
+      background: linear-gradient(135deg, #104835 0%, #17654b 100%);
+    }
+
+    /* Hybrid AI Engine Indicator Badge */
+    .engine-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 14px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      transition: all 0.2s ease;
+    }
+    .engine-badge.online {
+      background: #edf6fd;
+      color: #1a6fb0;
+      border: 1px solid #cbe4f9;
+      box-shadow: 0 2px 6px rgba(26, 111, 176, 0.08);
+    }
+    .engine-badge.offline {
+      background: #f3f6f4;
+      color: #3b5a4d;
+      border: 1px solid #d4dfd9;
+      box-shadow: 0 2px 6px rgba(59, 90, 77, 0.06);
+    }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      background: #102c23;
+      color: #fff;
+      padding: 13px 18px;
+      border-radius: 12px;
+      opacity: 0;
+      transform: translateY(15px);
+      transition: 0.25s;
+      pointer-events: none;
+      z-index: 999;
+      box-shadow: 0 14px 35px rgba(0,0,0,0.25);
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .toast.show { opacity: 1; transform: none; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="side">
+    <div class="brand" data-route="dashboard">
+      <div class="logo">
+        <svg viewBox="0 0 48 48"><path d="M11 23c-2-5 1-11 7-12 4-1 7 1 9 4 3-3 7-4 10-2 5 2 6 8 3 12-2 3-5 5-9 5H20c-4 0-7-3-9-7Z" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M17 31v8m14-8v8M14 18l-4-5m24 5 4-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="22" cy="21" r="1.5"/><circle cx="27" cy="21" r="1.5"/></svg>
+      </div>
+      <div>
+        <b data-i18n="brand">PashuRakshak AI</b>
+        <small data-i18n="brandSub">AI Livestock Health</small>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="active" data-route="dashboard">
+        <svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10H4Z"/><path d="M9 21v-7h6v7"/></svg>
+        <span data-i18n="dashboard">Dashboard</span>
+      </button>
+      <button data-route="new-screening">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 5 5M8 11h6M11 8v6"/></svg>
+        <span data-i18n="newScreening">New Screening</span>
+      </button>
+      <button data-route="history">
+        <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2-5"/><path d="M4 5v5h5M12 8v5l3 2"/></svg>
+        <span data-i18n="history">Screening History</span>
+      </button>
+      <button data-route="analytics">
+        <svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="m7 15 4-5 3 3 5-7"/></svg>
+        <span data-i18n="analytics">Analytics</span>
+      </button>
+      <button data-route="veterinary-help">
+        <svg viewBox="0 0 24 24"><path d="M10 3h4v5h5v4h-5v5h-4v-5H5V8h5Z"/></svg>
+        <span data-i18n="vetHelp">Veterinary Help</span>
+      </button>
+    </nav>
+
+    <div class="sidebottom">
+      <button data-route="notifications">
+        <svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+        <span data-i18n="notifications">Notifications</span>
+        <span class="badge-count" style="display:none;">2</span>
+      </button>
+      <button data-route="settings">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 15a2 2 0 0 0 .3 2l.1.1-2 2-.1-.1a2 2 0 0 0-2-.3 2 2 0 0 0-1.3 1.7v.2h-3v-.2a2 2 0 0 0-1.3-1.7 2 2 0 0 0-2 .3l-.1.1-2-2 .1-.1a2 2 0 0 0 .3-2 2 2 0 0 0-1.7-1.3H4v-3h.3A2 2 0 0 0 6 9.4a2 2 0 0 0-.3-2l-.1-.1 2-2 .1.1a2 2 0 0 0 2 .3A2 2 0 0 0 11 4V3h3v1a2 2 0 0 0 1.3 1.7 2 2 0 0 0 2-.3l.1-.1 2 2-.1.1a2 2 0 0 0-.3 2 2 2 0 0 0 1.7 1.3h.3v3h-.3A2 2 0 0 0 19 15Z"/></svg>
+        <span data-i18n="settings">Settings</span>
+      </button>
+
+      <div class="user">
+        <div class="avatar">SK</div>
+        <div>
+          <b style="font-size:13px; display:block;">Shubham Koli</b>
+          <div style="font-size:11px; color:var(--muted);">Dairy Farm Admin</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- SIDEBAR MOBILE BACKDROP -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="main">
+    <!-- TOP HEADER -->
+    <header class="top">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="mobile-hamburger" id="mobileHamburgerBtn" aria-label="Open Menu">
+          <svg viewBox="0 0 24 24" style="width:22px; stroke:currentColor; stroke-width:2;"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div>
+          <h1 id="dashGreeting" data-i18n="greeting">Good evening, 👋</h1>
+          <p data-i18n="subtitle">Monitor livestock health with intelligent AI screening.</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <select id="lang" aria-label="Language Selector">
+          <option value="en">🌐 English</option>
+          <option value="hi">🌐 हिन्दी</option>
+          <option value="mr">🌐 मराठी</option>
+        </select>
+        <button class="icon" data-route="notifications" title="Notifications">
+          <svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+        </button>
+        <div class="avatar" data-route="settings" style="cursor:pointer;" title="Settings">SK</div>
+      </div>
+    </header>
+
+    <!-- ======================================================= -->
+    <!-- VIEW 1: DASHBOARD                                       -->
+    <!-- ======================================================= -->
+    <div class="page-view active-view" id="view-dashboard">
+      <!-- HERO -->
+      <section class="hero">
+        <div class="hero-content">
+          <span class="hero-badge" data-i18n="badge">✦ AI-POWERED LIVESTOCK HEALTH</span>
+          <h2 data-i18n="heroTitle">Healthy animals, happier farms, <span class="accent-green">stronger tomorrow.</span></h2>
+          <p data-i18n="heroText">Upload an animal image, answer a few simple symptom questions, and let PashuRakshak AI assist with preliminary disease screening.</p>
+          <button class="hero-btn" data-route="new-screening" data-i18n="startScreening">Start New Screening →</button>
+        </div>
+      </section>
+
+      <!-- QUICK ACTION CARDS -->
+      <div class="quick">
+        <div class="card" data-route="new-screening">
+          <div class="qicon">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 5 5M8 11h6M11 8v6"/></svg>
+          </div>
+          <div>
+            <h3 data-i18n="quickScreening">New Screening</h3>
+            <p data-i18n="quickScreeningDesc">Scan cattle for early symptoms & viral patterns</p>
+          </div>
+        </div>
+
+        <div class="card" data-route="history">
+          <div class="qicon">
+            <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2-5"/><path d="M4 5v5h5M12 8v5l3 2"/></svg>
+          </div>
+          <div>
+            <h3 data-i18n="quickHistory">Screening History</h3>
+            <p data-i18n="quickHistoryDesc">Review past screening assessments and logs</p>
+          </div>
+        </div>
+
+        <div class="card" data-route="veterinary-help">
+          <div class="qicon">
+            <svg viewBox="0 0 24 24"><path d="M10 3h4v5h5v4h-5v5h-4v-5H5V8h5Z"/></svg>
+          </div>
+          <div>
+            <h3 data-i18n="quickVet">Veterinary Help</h3>
+            <p data-i18n="quickVetDesc">Find nearby registered veterinarians & hotlines</p>
+          </div>
+        </div>
+
+        <div class="card" data-route="analytics">
+          <div class="qicon">
+            <svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="m7 15 4-5 3 3 5-7"/></svg>
+          </div>
+          <div>
+            <h3 data-i18n="quickAnalytics">Health Analytics</h3>
+            <p data-i18n="quickAnalyticsDesc">Track livestock health trends and herd metrics</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats">
+        <div class="card stat">
+          <div>
+            <div class="statnum" id="statTotalScreenings">12</div>
+            <div class="statlabel" data-i18n="statsTotal">Total Screenings</div>
+          </div>
+          <span class="trend">+15% vs last mo</span>
+        </div>
+
+        <div class="card stat">
+          <div>
+            <div class="statnum" id="statHealthy">9</div>
+            <div class="statlabel" data-i18n="statsHealthy">Healthy</div>
+          </div>
+          <span class="trend">75% of herd</span>
+        </div>
+
+        <div class="card stat">
+          <div>
+            <div class="statnum" id="statAttention">3</div>
+            <div class="statlabel" data-i18n="statsAttention">Needs Attention</div>
+          </div>
+          <span class="trend red">Alert Active</span>
+        </div>
+      </div>
+
+      <!-- RECENT SCREENINGS & HELP -->
+      <div class="bottom">
+        <div class="card table">
+          <div style="padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e5ece8;">
+            <h3 style="margin:0; font-size:16px;" data-i18n="recentScreenings">Recent Screenings</h3>
+            <a href="#/history" style="color:var(--g); font-size:13px; font-weight:700; text-decoration:none;" data-i18n="viewAll">View All →</a>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="colAnimal">Animal</th>
+                <th data-i18n="colType">Type</th>
+                <th data-i18n="colDate">Date</th>
+                <th data-i18n="colResult">Result</th>
+                <th data-i18n="colStatus">Status</th>
+              </tr>
+            </thead>
+            <tbody id="recentScreeningsTbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="help-card-dash">
+          <h3>
+            <svg viewBox="0 0 24 24" style="width:20px; height:20px; stroke:#155f46; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg>
+            <span data-i18n="quickVet">Veterinary Help</span>
+          </h3>
+          <p data-i18n="vetHelpDashText">Access emergency care, 24x7 livestock helplines, or search for certified veterinarians nearby.</p>
+          <button class="help-btn" data-route="veterinary-help" data-i18n="findDoctors">Find Doctors →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- VIEW 2: NEW LIVESTOCK SCREENING                         -->
+    <!-- ======================================================= -->
+    <div class="page-view" id="view-new-screening">
+      <div class="page-header">
+        <div class="breadcrumb">
+          <a href="#/dashboard">Dashboard</a> <span>/</span> <span>New Screening</span>
+        </div>
+        <h1 data-i18n="newScreening">New Livestock Screening</h1>
+        <p data-i18n="heroText">Upload an animal image and provide a few symptoms for AI-assisted screening.</p>
+      </div>
+
+      <div class="wizard-card">
+        <!-- Stepper Indicator -->
+        <div class="stepper">
+          <div class="step-item active" data-step="1">
+            <div class="step-circle">1</div>
+            <div class="step-title" data-i18n="step1Title">Animal & Image</div>
+          </div>
+          <div class="step-item" data-step="2">
+            <div class="step-circle">2</div>
+            <div class="step-title" data-i18n="step2Title">Symptoms</div>
+          </div>
+          <div class="step-item" data-step="3">
+            <div class="step-circle">3</div>
+            <div class="step-title" data-i18n="step3Title">AI Screening</div>
+          </div>
+          <div class="step-item" data-step="4">
+            <div class="step-circle">4</div>
+            <div class="step-title" data-i18n="step4Title">Results</div>
+          </div>
+        </div>
+
+        <!-- STEP 1 PANE -->
+        <div class="step-pane active-pane" id="step-pane-1">
+          <label style="display:block; font-size:13px; font-weight:700; color:#233a30; margin-bottom:8px;" data-i18n="animalTypeLabel">Select Animal Type</label>
+          <div class="animal-selector">
+            <div class="animal-chip selected" data-animal="Cattle">
+              <span class="animal-icon">🐄</span>
+              <span data-i18n="animalCattle">Cattle (Cow)</span>
+            </div>
+            <div class="animal-chip" data-animal="Buffalo">
+              <span class="animal-icon">🐃</span>
+              <span data-i18n="animalBuffalo">Buffalo</span>
+            </div>
+            <div class="animal-chip" data-animal="Goat">
+              <span class="animal-icon">🐐</span>
+              <span data-i18n="animalGoat">Goat / Sheep</span>
+            </div>
+            <div class="animal-chip" data-animal="Other">
+              <span class="animal-icon">🐾</span>
+              <span data-i18n="animalOther">Other Livestock</span>
+            </div>
+          </div>
+
+          <label style="display:block; font-size:13px; font-weight:700; color:#233a30; margin-bottom:8px;" data-i18n="uploadTitle">Upload Animal Image</label>
+          <div class="dropzone-area" id="screeningDropzone">
+            <div class="dropzone-icon">
+              <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 3 3 2-2 6 6"/></svg>
+            </div>
+            <h3 data-i18n="uploadTitle">Upload animal image</h3>
+            <p data-i18n="uploadSubtitle">Drag & drop an image here or browse from your device</p>
+            <div class="upload-buttons">
+              <button type="button" class="upload-btn-secondary" id="wizardCameraBtn">
+                📸 <span data-i18n="takePhoto">Take Photo with Camera</span>
+              </button>
+              <button type="button" class="upload-btn-secondary" onclick="document.getElementById('wizardFileInput').click()">
+                📁 <span data-i18n="browseFiles">Browse Photo File</span>
+              </button>
+            </div>
+            <span style="display:block; margin-top:12px; font-size:11px; color:#85948f;" data-i18n="supportedFormats">Supported formats: JPG, JPEG, PNG (Max 15MB)</span>
+          </div>
+
+          <!-- Preview Box -->
+          <div class="image-preview-box" id="screeningImagePreviewBox" style="display:none;">
+            <img id="screeningPreviewImg" alt="Animal Preview" src="">
+            <button class="preview-overlay-btn" id="removePhotoBtn" data-i18n="removePhoto">✕ Remove Photo</button>
+          </div>
+
+          <input type="file" id="wizardFileInput" accept="image/jpeg,image/png,image/webp" style="display:none;">
+          <input type="file" id="wizardCameraInput" accept="image/*" capture="environment" style="display:none;">
+        </div>
+
+        <!-- STEP 2 PANE -->
+        <div class="step-pane" id="step-pane-2">
+          <h3 style="margin:0 0 6px; font-size:18px; color:#142921;" data-i18n="symptomsTitle">Livestock Symptom Questionnaire</h3>
+          <p style="margin:0 0 16px; font-size:13px; color:var(--muted);" data-i18n="symptomsSubtitle">Check any visible clinical symptoms or behavioral changes observed:</p>
+
+          <div class="symptom-grid">
+            <label class="symptom-toggle">
+              <input type="checkbox" value="Fever">
+              <span data-i18n="symFever">High Fever / Hot Ears</span>
+            </label>
+            <label class="symptom-toggle">
+              <input type="checkbox" value="Skin lesions">
+              <span data-i18n="symSkinLesions">Skin Lesions / Scabs</span>
+            </label>
+            <label class="symptom-toggle">
+              <input type="checkbox" value="Lumps/swelling">
+              <span data-i18n="symLumps">Lumps / Cutaneous Nodules</span>
+            </label>
+            <label class="symptom-toggle">
+              <input type="checkbox" value="Excessive salivation">
+              <span data-i18n="symSalivation">Excessive Frothy Salivation</span>
+            </label>
+            <label class="symptom-toggle">
+              <input type="checkbox" value="Mouth lesions">
+              <span data-i18n="symMouthLesions">Mouth / Tongue Blisters</span>
+            </label>
+            <label class="symptom-toggle">
+              <input type="checkbox" value="Difficulty walking">
+              <span data-i18n="symLameness">Lameness / Hoof Lesions</span>
+            </label>
+            <label class="symptom-toggle">
+              <input type="checkbox" value="Loss of appetite">
+              <span data-i18n="symAppetite">Loss of Appetite / Reduced Rumination</span>
+            </label>
+            <label class="symptom-toggle">
+              <input type="checkbox" value="Nasal discharge">
+              <span data-i18n="symNasal">Nasal / Ocular Discharge</span>
+            </label>
+            <label class="symptom-toggle">
+              <input type="checkbox" value="Reduced milk production">
+              <span data-i18n="symMilkDrop">Sudden Drop in Milk Yield</span>
+            </label>
+          </div>
+
+          <div class="form-group" style="margin-top:16px;">
+            <label for="screeningNotes" data-i18n="observationsLabel">Additional Observations (Optional):</label>
+            <textarea id="screeningNotes" class="notes-textarea" data-i18n-placeholder="observationsPlaceholder" placeholder="Note down any other behaviors, duration of symptoms, or feed intake changes..."></textarea>
+          </div>
+        </div>
+
+        <!-- STEP 3 PANE -->
+        <div class="step-pane" id="step-pane-3">
+          <h3 style="margin:0 0 6px; font-size:18px; color:#142921;" data-i18n="reviewTitle">Review & AI Disease Screening</h3>
+          <p style="margin:0 0 18px; font-size:13px; color:var(--muted);" data-i18n="reviewSubtitle">Verify your recorded information before running TensorFlow Lite inference:</p>
+
+          <div class="summary-review-card" id="step3SummaryBox">
+            <!-- Rendered dynamically -->
+          </div>
+
+          <div class="ai-loading-box" id="aiLoadingBox">
+            <div class="ai-spinner"></div>
+            <h3 data-i18n="scanningText">Analyzing livestock image...</h3>
+            <p data-i18n="scanningSub">AI model is processing the image.</p>
+          </div>
+
+          <div style="text-align:center; margin-top:20px;">
+            <button class="analyze-btn" id="runAiScreeningBtn" style="padding:14px 28px; font-size:16px;">
+              ⚡ <span data-i18n="runAiScan">Run AI Screening</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 4 PANE -->
+        <div class="step-pane" id="step-pane-4">
+          <div id="step4ResultContainer">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Wizard Navigation Footer -->
+        <div class="wizard-footer">
+          <button class="secondary-btn" id="wizardBackBtn" style="display:none;" data-i18n="backBtn">← Back</button>
+          <div style="margin-left:auto;">
+            <button class="analyze-btn" id="wizardNextBtn" disabled data-i18n="continueToSymptoms">Continue to Symptoms →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- VIEW 3: SCREENING HISTORY                               -->
+    <!-- ======================================================= -->
+    <div class="page-view" id="view-history">
+      <div class="page-header">
+        <div class="breadcrumb">
+          <a href="#/dashboard">Dashboard</a> <span>/</span> <span>History</span>
+        </div>
+        <h1 data-i18n="history">Screening History</h1>
+        <p data-i18n="historySubtitle">Comprehensive historical logs of all livestock health screenings and diagnostic records.</p>
+      </div>
+
+      <!-- FILTER BAR -->
+      <div class="filter-bar">
+        <div class="search-input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="historySearch" placeholder="Search by animal name, ID or disease..." data-i18n-placeholder="searchPlaceholder">
+        </div>
+
+        <select class="filter-select" id="historyAnimalFilter">
+          <option value="all" data-i18n="filterAllTypes">All Animal Types</option>
+          <option value="Cattle">Cattle (Cow)</option>
+          <option value="Buffalo">Buffalo</option>
+          <option value="Goat">Goat / Sheep</option>
+          <option value="Other">Other</option>
+        </select>
+
+        <select class="filter-select" id="historyDiseaseFilter">
+          <option value="all" data-i18n="filterAllDiseases">All Diseases</option>
+          <option value="healthy">Healthy</option>
+          <option value="lumpy">Lumpy Skin Disease</option>
+          <option value="fmd">Foot & Mouth Disease</option>
+        </select>
+
+        <select class="filter-select" id="historyStatusFilter">
+          <option value="all" data-i18n="filterAllStatus">All Statuses</option>
+          <option value="normal">Normal</option>
+          <option value="attention">Needs Attention</option>
+        </select>
+
+        <select class="filter-select" id="historyDateFilter">
+          <option value="all" data-i18n="filterAllDates">All Time</option>
+          <option value="today">Today</option>
+          <option value="week">Past 7 Days</option>
+          <option value="month">Past 30 Days</option>
+        </select>
+      </div>
+
+      <!-- TABLE -->
+      <div class="card table" style="margin-top:14px;">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="colAnimal">Animal</th>
+              <th data-i18n="colType">Animal Type</th>
+              <th data-i18n="colDate">Date</th>
+              <th data-i18n="colResult">Prediction</th>
+              <th>Confidence</th>
+              <th data-i18n="colStatus">Status</th>
+              <th data-i18n="colAction">Action</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableTbody">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- VIEW 4: ANALYTICS                                       -->
+    <!-- ======================================================= -->
+    <div class="page-view" id="view-analytics">
+      <div class="page-header">
+        <div class="breadcrumb">
+          <a href="#/dashboard">Dashboard</a> <span>/</span> <span>Analytics</span>
+        </div>
+        <h1 data-i18n="analytics">Livestock Health Analytics</h1>
+        <p>Real-time statistical disease distribution, herd health ratios, and temporal screening patterns.</p>
+      </div>
+
+      <div class="stats">
+        <div class="card stat">
+          <div>
+            <div class="statnum" id="anTotalScreenings">12</div>
+            <div class="statlabel" data-i18n="statsTotal">Total Screenings</div>
+          </div>
+          <span class="trend">Live Metrics</span>
+        </div>
+
+        <div class="card stat">
+          <div>
+            <div class="statnum" id="anHealthyCount">9</div>
+            <div class="statlabel" data-i18n="statsHealthy">Healthy Livestock</div>
+          </div>
+          <span class="trend">Optimal</span>
+        </div>
+
+        <div class="card stat">
+          <div>
+            <div class="statnum" id="anAttentionCount">3</div>
+            <div class="statlabel" data-i18n="statsAttention">Needs Attention</div>
+          </div>
+          <span class="trend red">Quarantined</span>
+        </div>
+      </div>
+
+      <div class="analytics-grid">
+        <!-- Chart 1: Activity Timeline -->
+        <div class="chart-card">
+          <h3 data-i18n="chartActivityTitle">Screening Activity Over Time</h3>
+          <p data-i18n="chartActivitySub">Daily volume of livestock screenings logged over the current cycle</p>
+          <canvas id="activityTrendChart" style="width:100%; height:240px; display:block;"></canvas>
+        </div>
+
+        <!-- Chart 2: Disease Distribution -->
+        <div class="chart-card">
+          <h3 data-i18n="chartDiseaseTitle">Disease Distribution</h3>
+          <p data-i18n="chartDiseaseSub">Breakdown between Healthy, Lumpy Skin Disease, and FMD</p>
+          <div id="diseaseDonutChartContainer"></div>
+        </div>
+
+        <!-- Chart 3: Healthy vs Attention Ratio -->
+        <div class="chart-card">
+          <h3 data-i18n="chartRatioTitle">Healthy vs. Needs Attention Ratio</h3>
+          <p data-i18n="chartRatioSub">Overall herd wellness status proportion</p>
+          <div id="healthyVsAttentionBarContainer" style="padding-top:10px;"></div>
+        </div>
+
+        <!-- Chart 4: Animal Type Distribution -->
+        <div class="chart-card">
+          <h3 data-i18n="chartAnimalTitle">Animal Type Distribution</h3>
+          <p data-i18n="chartAnimalSub">Screenings categorized by cattle, buffalo, goat, and others</p>
+          <div id="animalBreakdownContainer" style="padding-top:6px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- VIEW 5: VETERINARY HELP                                 -->
+    <!-- ======================================================= -->
+    <div class="page-view" id="view-veterinary-help">
+      <div class="page-header">
+        <div class="breadcrumb">
+          <a href="#/dashboard">Dashboard</a> <span>/</span> <span>Veterinary Help</span>
+        </div>
+        <h1 data-i18n="vetHelpTitle">Veterinary Help</h1>
+        <p data-i18n="vetHelpSubtitle">Find registered veterinary support, 24x7 emergency contacts, and professional care protocols.</p>
+      </div>
+
+      <!-- Emergency Hotline Banner -->
+      <div class="emergency-banner">
+        <div>
+          <span class="badge" style="background:rgba(255,255,255,0.2);" data-i18n="emergencyBadge">🚨 24x7 EMERGENCY SUPPORT</span>
+          <h2 style="margin:8px 0 4px; font-size:22px;" id="vetEmergencyTitle" data-i18n="emergencyTitle">24x7 National Livestock Emergency Helpline</h2>
+          <p style="margin:0; opacity:0.92; font-size:13px;" data-i18n="emergencyDesc">Immediate tele-veterinary diagnosis, ambulance dispatch, and outbreak guidance.</p>
+        </div>
+        <a href="tel:18004251660" class="primary" style="text-decoration:none; margin:0;" id="vetEmergencyPhone" data-i18n="callTollFree">📞 Call: 1800-425-1660</a>
+      </div>
+
+      <!-- Nearby Vet Doctors -->
+      <h3 style="margin:0 0 14px; font-size:18px; color:#132d24;" data-i18n="nearbyDoctors">Nearby Veterinary Doctors & Clinics</h3>
+      <div class="vet-grid" id="vetDirectoryGrid">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Care Guidelines -->
+      <h3 style="margin:24px 0 14px; font-size:18px; color:#132d24;" data-i18n="careProtocolsTitle">Livestock Disease Care & Prevention Protocols</h3>
+      <div id="careGuidesAccordion">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- VIEW 6: NOTIFICATIONS                                   -->
+    <!-- ======================================================= -->
+    <div class="page-view" id="view-notifications">
+      <div class="page-header">
+        <div class="breadcrumb">
+          <a href="#/dashboard">Dashboard</a> <span>/</span> <span>Notifications</span>
+        </div>
+        <h1 data-i18n="notifTitle">Notifications</h1>
+        <p data-i18n="notifSubtitle">System alerts, screening completion notices, and veterinary advisories.</p>
+      </div>
+
+      <div class="notifications-wrapper">
+        <div class="notif-header">
+          <div class="notif-filter-group">
+            <button class="notif-tab-pill active" data-filter="all">
+              <span data-i18n="tabAll">All</span>
+            </button>
+            <button class="notif-tab-pill" data-filter="unread">
+              <span data-i18n="tabUnread">Unread</span>
+              <span class="badge-count" style="display:none; font-size:10px; padding:1px 6px;">2</span>
+            </button>
+            <button class="notif-tab-pill" data-filter="alerts">
+              <span data-i18n="tabAlerts">⚠️ Alerts</span>
+            </button>
+          </div>
+          <button class="btn-mark-all-read" id="markAllReadBtn">
+            <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+            <span data-i18n="markAllRead">Mark all as read</span>
+          </button>
+        </div>
+
+        <div id="notificationsListContainer">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- VIEW 7: SETTINGS                                        -->
+    <!-- ======================================================= -->
+    <div class="page-view" id="view-settings">
+      <div class="page-header">
+        <div class="breadcrumb">
+          <a href="#/dashboard">Dashboard</a> <span>/</span> <span>Settings</span>
+        </div>
+        <h1 data-i18n="settingsTitle">Settings</h1>
+        <p data-i18n="settingsSubtitle">Configure account preferences, language, notification rules, and AI screening parameters.</p>
+      </div>
+
+      <div class="settings-container">
+        <!-- Settings Nav -->
+        <div class="settings-nav">
+          <button class="settings-nav-btn active" data-section="profile" data-i18n="tabProfile">👤 Profile</button>
+          <button class="settings-nav-btn" data-section="language" data-i18n="tabLanguage">🌐 Language</button>
+          <button class="settings-nav-btn" data-section="notifications" data-i18n="tabNotifications">🔔 Notifications</button>
+          <button class="settings-nav-btn" data-section="appearance" data-i18n="tabAppearance">🎨 Appearance</button>
+          <button class="settings-nav-btn" data-section="privacy" data-i18n="tabPrivacy">🔒 Privacy & Data</button>
+          <button class="settings-nav-btn" data-section="ai" data-i18n="tabAi">⚡ AI Screening</button>
+        </div>
+
+        <!-- Settings Content Sections -->
+        <div class="settings-content">
+          <!-- Section 1: Profile -->
+          <div class="settings-content-section active-section" id="settings-sec-profile">
+            <h3 style="margin:0 0 16px; font-size:18px;" data-i18n="profileHeader">Farmer & Dairy Profile</h3>
+            <div class="form-group">
+              <label data-i18n="lblFullName">Full Name</label>
+              <input type="text" class="form-control" id="setFullName" value="Shubham Koli">
+            </div>
+            <div class="form-group">
+              <label data-i18n="lblFarmName">Dairy / Farm Name</label>
+              <input type="text" class="form-control" id="setFarmName" value="Koli Dairy & Livestock Farm">
+            </div>
+            <div class="form-group">
+              <label data-i18n="lblLocation">Location / Village</label>
+              <input type="text" class="form-control" id="setLocation" value="Pune Rural, Maharashtra">
+            </div>
+            <div class="form-group">
+              <label data-i18n="lblPhone">Contact Phone Number</label>
+              <input type="text" class="form-control" id="setPhone" value="+91 98220 12345">
+            </div>
+            <div class="form-group">
+              <label data-i18n="lblEmail">Email Address</label>
+              <input type="email" class="form-control" id="setEmail" value="shubham.koli@farm.in">
+            </div>
+            <div class="form-group">
+              <label data-i18n="lblHerdSize">Total Herd Size</label>
+              <input type="text" class="form-control" id="setHerdSize" value="24 Cattle, 8 Buffaloes">
+            </div>
+            <button class="analyze-btn" id="saveProfileBtn" data-i18n="saveChanges">💾 Save Changes</button>
+          </div>
+
+          <!-- Section 2: Language -->
+          <div class="settings-content-section" id="settings-sec-language">
+            <h3 style="margin:0 0 16px; font-size:18px;" data-i18n="appLangTitle">Application Language</h3>
+            <p style="margin:0 0 16px; font-size:13px; color:var(--muted);" data-i18n="appLangSub">Select your preferred language. All menus, guidelines, and diagnostic results will be translated instantly.</p>
+            
+            <div style="display:flex; flex-direction:column; gap:10px; max-width:320px;">
+              <button class="secondary-btn" style="text-align:left; padding:12px 16px;" onclick="document.getElementById('lang').value='en'; document.getElementById('lang').dispatchEvent(new Event('change'));">
+                🇺🇸 English (Default)
+              </button>
+              <button class="secondary-btn" style="text-align:left; padding:12px 16px;" onclick="document.getElementById('lang').value='hi'; document.getElementById('lang').dispatchEvent(new Event('change'));">
+                🇮🇳 हिन्दी (Hindi)
+              </button>
+              <button class="secondary-btn" style="text-align:left; padding:12px 16px;" onclick="document.getElementById('lang').value='mr'; document.getElementById('lang').dispatchEvent(new Event('change'));">
+                🚩 मराठी (Marathi)
+              </button>
+            </div>
+          </div>
+
+          <!-- Section 3: Notifications -->
+          <div class="settings-content-section" id="settings-sec-notifications">
+            <h3 style="margin:0 0 16px; font-size:18px;" data-i18n="notifPrefTitle">Notification Preferences</h3>
+            <div class="switch-toggle">
+              <div>
+                <strong data-i18n="smsAlertsTitle">SMS Outbreak Alerts</strong><br>
+                <span style="font-size:12px; color:var(--muted);" data-i18n="smsAlertsSub">Receive immediate SMS warning if contagious disease is detected</span>
+              </div>
+              <input type="checkbox" checked style="width:20px; height:20px; accent-color:var(--g);">
+            </div>
+            <div class="switch-toggle">
+              <div>
+                <strong data-i18n="completionSoundTitle">Screening Completion Sound</strong><br>
+                <span style="font-size:12px; color:var(--muted);" data-i18n="completionSoundSub">Play a chime when AI screening processing finishes</span>
+              </div>
+              <input type="checkbox" checked style="width:20px; height:20px; accent-color:var(--g);">
+            </div>
+            <div class="switch-toggle">
+              <div>
+                <strong data-i18n="weeklyDigestTitle">Weekly Herd Health Digest</strong><br>
+                <span style="font-size:12px; color:var(--muted);" data-i18n="weeklyDigestSub">Receive weekly email summaries of herd vital trends</span>
+              </div>
+              <input type="checkbox" checked style="width:20px; height:20px; accent-color:var(--g);">
+            </div>
+          </div>
+
+          <!-- Section 4: Appearance -->
+          <div class="settings-content-section" id="settings-sec-appearance">
+            <h3 style="margin:0 0 16px; font-size:18px;" data-i18n="dispAppTitle">Display & Appearance</h3>
+            <div class="switch-toggle">
+              <div>
+                <strong data-i18n="highContrastTitle">High Contrast Accessibility</strong><br>
+                <span style="font-size:12px; color:var(--muted);" data-i18n="highContrastSub">Enhance text borders and contrast for outdoor sunlight readability</span>
+              </div>
+              <input type="checkbox" style="width:20px; height:20px; accent-color:var(--g);">
+            </div>
+            <div class="switch-toggle">
+              <div>
+                <strong data-i18n="animationsTitle">Smooth Micro-Animations</strong><br>
+                <span style="font-size:12px; color:var(--muted);" data-i18n="animationsSub">Enable subtle spring transitions on cards and buttons</span>
+              </div>
+              <input type="checkbox" checked style="width:20px; height:20px; accent-color:var(--g);">
+            </div>
+          </div>
+
+          <!-- Section 5: Privacy & Data -->
+          <div class="settings-content-section" id="settings-sec-privacy">
+            <h3 style="margin:0 0 16px; font-size:18px;" data-i18n="privacyTitle">Privacy & Local Data Storage</h3>
+            <p style="margin:0 0 16px; font-size:13px; color:var(--muted);" data-i18n="privacySub">Your livestock screening records and medical notes are stored securely on your device.</p>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+              <button class="secondary-btn" id="exportHistoryJsonBtn" data-i18n="exportJsonBtn">📥 Export Screening Data (.JSON)</button>
+              <button class="secondary-btn" data-i18n="resetCacheBtn" onclick="if(confirm('Are you sure you want to reset demo history?')){localStorage.removeItem('pashurakshak_screening_history'); location.reload();}">🔄 Reset Demo Cache</button>
+            </div>
+          </div>
+
+          <!-- Section 6: AI Screening Preferences -->
+          <div class="settings-content-section" id="settings-sec-ai">
+            <h3 style="margin:0 0 16px; font-size:18px;" data-i18n="aiParamsTitle">AI Screening Engine Parameters</h3>
+            <div class="form-group">
+              <label data-i18n="fastApiEndpointLabel">FastAPI Backend Endpoint</label>
+              <input type="text" class="form-control" value="http://localhost:8000/predict" readonly>
+              <small style="color:var(--muted); font-size:11px;" data-i18n="poweredByText">Powered by TensorFlow Lite & ai_edge_litert interpreter</small>
+            </div>
+            <div class="form-group">
+              <label data-i18n="confThresholdLabel">Confidence Threshold Alert Level: 85%</label>
+              <input type="range" min="70" max="95" value="85" style="width:100%; accent-color:var(--g);">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ======================================================= -->
+<!-- DETAIL INSPECTION MODAL                                 -->
+<!-- ======================================================= -->
+<div class="inspection-overlay" id="inspectionModal">
+  <div class="inspection-modal-box">
+    <div id="inspectionModalContent">
+      <!-- Rendered dynamically -->
+    </div>
+  </div>
+</div>
+
+<!-- GLOBAL TOAST -->
+<div class="toast" id="appToast">Notification message</div>
+
+<!-- SCRIPTS -->
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
